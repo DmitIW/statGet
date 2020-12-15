@@ -1,0 +1,51 @@
+package api
+
+import (
+	"github.com/tarantool/go-tarantool"
+	"log"
+	"net/http"
+)
+
+type StatisticServer struct {
+	Addr   string
+	Server *http.Server
+	Mplx   *http.ServeMux
+}
+
+func (s *StatisticServer) Start() error {
+	if err := s.Server.ListenAndServe(); err != http.ErrServerClosed {
+		return err
+	}
+	return nil
+}
+
+func (s *StatisticServer) Stop() {
+	if err := s.Server.Close(); err != nil {
+		log.Printf("Error on closing server: %v\n", err)
+	}
+}
+
+func GetMux(tConnection *tarantool.Connection) *http.ServeMux {
+	mplx := http.NewServeMux()
+	mplx.Handle("/s2da", CreatePWHandler(tConnection, "src2dst_at"))
+	mplx.Handle("/s2dl", CreatePWHandler(tConnection, "src2dst_lg"))
+	mplx.Handle("/d2sa", CreatePWHandler(tConnection, "dst2src_at"))
+	mplx.Handle("/d2sl", CreatePWHandler(tConnection, "dst2src_lg"))
+	mplx.Handle("/d2pa", CreatePWHandler(tConnection, "dst2proto_at"))
+	mplx.Handle("/d2pl", CreatePWHandler(tConnection, "dst2proto_lg"))
+	return mplx
+}
+
+func GetServer(addr string, tConnection *tarantool.Connection) StatisticServer {
+	mplx := GetMux(tConnection)
+	srv := &http.Server{
+		Addr:    addr,
+		Handler: mplx,
+	}
+	log.Printf("Server is created on %v\n", addr)
+	return StatisticServer{
+		Addr:   addr,
+		Server: srv,
+		Mplx:   mplx,
+	}
+}

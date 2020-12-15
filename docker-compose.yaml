@@ -1,0 +1,10 @@
+version: '3'
+
+services:
+  statGet:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: statget
+    container_name: mldma.statget
+    network_mode: host
