@@ -60,7 +60,7 @@ func (pw *PairWiseAPI) PairWiseHandler() http.Handler {
 func (pw *PairWiseAPI) SpaceSizeHandler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var (
-			size uint32
+			size uint
 			err  error
 		)
 		size = pw.conn.Size()

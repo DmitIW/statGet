@@ -15,7 +15,7 @@ type PairwiseStatistic struct {
 }
 
 func (ps *PairwiseStatistic) EncodeMsgpack(e *msgpack.Encoder) error {
-	if err := e.EncodeArrayLen(2); err != nil {
+	if err := e.EncodeArrayLen(4); err != nil {
 		return err
 	}
 
@@ -121,12 +121,13 @@ func (pwdC *PWDConnection) SelectMean(aprioriElement uint16) uint32 {
 	return pwdC.SelectCounter(0, aprioriElement)
 }
 
-func (pwdC *PWDConnection) Size() (size uint32) {
+func (pwdC *PWDConnection) Size() uint {
 	var (
-		err error
+		size uint
+		err  error
 	)
 	if size, err = pwdC.conn.Size(); err != nil {
-		return 0
+		log.Printf("Warning:PWDConnection:Size:: %v\n", err)
 	}
 	return size
 }
