@@ -2,13 +2,15 @@ package tConnector
 
 import (
 	"github.com/tarantool/go-tarantool"
+	"log"
 )
 
 type TConnection struct {
 	connection *tarantool.Connection
 
-	spaceID uint32
-	indexID uint32
+	spaceName string
+	spaceID   uint32
+	indexID   uint32
 }
 
 func TarantoolAgent(connection *tarantool.Connection, spaceName string) TConnection {
@@ -17,6 +19,7 @@ func TarantoolAgent(connection *tarantool.Connection, spaceName string) TConnect
 	indexID := space.Indexes["primary"].Id
 	return TConnection{
 		connection: connection,
+		spaceName:  spaceName,
 		spaceID:    spaceID,
 		indexID:    indexID,
 	}
@@ -28,4 +31,16 @@ func (c *TConnection) Select(key []interface{}, result interface{}) error {
 		return err
 	}
 	return nil
+}
+
+func (c *TConnection) Size() (uint32, error) {
+	var (
+		resp *tarantool.Response
+		err  error
+	)
+	if resp, err = c.connection.Eval("box.space."+c.spaceName+":count()", []interface{}{}); err != nil {
+		return 0, err
+	}
+	log.Printf("Data: %v\n", resp.Data)
+	return 0, err
 }

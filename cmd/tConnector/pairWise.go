@@ -120,3 +120,13 @@ func (pwdC *PWDConnection) SelectTotal(aprioriElement uint16) uint32 {
 func (pwdC *PWDConnection) SelectMean(aprioriElement uint16) uint32 {
 	return pwdC.SelectCounter(0, aprioriElement)
 }
+
+func (pwdC *PWDConnection) Size() (size uint32) {
+	var (
+		err error
+	)
+	if size, err = pwdC.conn.Size(); err != nil {
+		return 0
+	}
+	return size
+}
