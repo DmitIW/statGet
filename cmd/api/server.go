@@ -27,12 +27,12 @@ func (s *StatisticServer) Stop() {
 
 func GetMux(tConnection *tarantool.Connection) *http.ServeMux {
 	mplx := http.NewServeMux()
-	mplx.Handle("/s2da", CreatePWHandler(tConnection, "src2dst_at"))
-	mplx.Handle("/s2dl", CreatePWHandler(tConnection, "src2dst_lg"))
-	mplx.Handle("/d2sa", CreatePWHandler(tConnection, "dst2src_at"))
-	mplx.Handle("/d2sl", CreatePWHandler(tConnection, "dst2src_lg"))
-	mplx.Handle("/d2pa", CreatePWHandler(tConnection, "dst2proto_at"))
-	mplx.Handle("/d2pl", CreatePWHandler(tConnection, "dst2proto_lg"))
+	BindPWApi(tConnection, "src2dst_at", mplx, "/s2da")
+	BindPWApi(tConnection, "src2dst_lg", mplx, "/s2dl")
+	BindPWApi(tConnection, "dst2src_at", mplx, "/d2sa")
+	BindPWApi(tConnection, "dst2src_lg", mplx, "/d2sl")
+	BindPWApi(tConnection, "dst2proto_at", mplx, "/d2pa")
+	BindPWApi(tConnection, "dst2proto_lg", mplx, "/d2pl")
 	return mplx
 }
 

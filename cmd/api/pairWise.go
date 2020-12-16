@@ -39,7 +39,7 @@ func (pwa *PairWiseAPI) Calc(aprioriElement uint16, probabilityElement uint16) f
 	return float64(counter) / float64(total)
 }
 
-func PairWiseHandler(pw PairWiseAPI) http.Handler {
+func (pw *PairWiseAPI) PairWiseHandler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var (
 			a, p        uint16
@@ -57,7 +57,34 @@ func PairWiseHandler(pw PairWiseAPI) http.Handler {
 	})
 }
 
-func CreatePWHandler(conn *tarantool.Connection, spaceName string) http.Handler {
-	spaceConn := tConnector.PairWiseAgent(conn, spaceName)
-	return PairWiseHandler(PairWiseAPI{conn: &spaceConn})
+func (pw *PairWiseAPI) SpaceSizeHandler() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var (
+			size uint32
+			err  error
+		)
+		size = pw.conn.Size()
+		if _, err = fmt.Fprintf(w, "%d", size); err != nil {
+			log.Printf("Error on sending size: %v\n", err)
+		}
+	})
+}
+
+func (pwa *PairWiseAPI) Bind(mplx *http.ServeMux, route string) {
+	probabilityRoute := route + "_prob"
+	sizeRoute := route + "_size"
+	mplx.Handle(probabilityRoute, pwa.PairWiseHandler())
+	mplx.Handle(sizeRoute, pwa.SpaceSizeHandler())
+}
+
+func createPWApi(conn *tarantool.Connection, spaceName string) PairWiseAPI {
+	connector := tConnector.PairWiseAgent(conn, spaceName)
+	return PairWiseAPI{
+		conn: &connector,
+	}
+}
+
+func BindPWApi(conn *tarantool.Connection, spaceName string, mplx *http.ServeMux, route string) {
+	pwa := createPWApi(conn, spaceName)
+	pwa.Bind(mplx, route)
 }
